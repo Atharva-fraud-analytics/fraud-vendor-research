@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clari5: Enterprise Fraud & AML Platform Analysis</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container { height: 400px; }
+        }
+        .block-arrow {
+            text-align: center;
+            font-size: 1.5rem;
+            color: #64748b;
+            margin: 0.5rem 0;
+        }
+        body {
+            background-color: #fafaf9;
+            color: #1c1917;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid #e7e5e4;
+        }
+        .nav-btn {
+            border-left: 4px solid transparent;
+        }
+        .nav-btn.active {
+            background-color: #f5f5f4;
+            border-left: 4px solid #0f766e;
+            font-weight: 600;
+            color: #0f766e;
+        }
+        .custom-scroll::-webkit-scrollbar {
+            width: 8px;
+        }
+        .custom-scroll::-webkit-scrollbar-track {
+            background: #f5f5f4; 
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #d6d3d1; 
+            border-radius: 4px;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb:hover {
+            background: #a8a29e; 
+        }
+    </style>
+</head>
+<body class="h-screen flex flex-col md:flex-row overflow-hidden">
+
+    <div class="md:hidden bg-white border-b border-stone-200 p-4 flex justify-between items-center z-30 shadow-sm">
+        <div>
+            <h1 class="text-xl font-bold text-slate-800 tracking-tight">&#x1F6E1; Clari5 Analyst</h1>
+            <p class="text-[10px] text-stone-500 uppercase tracking-wider">Vendor Analysis Report</p>
+        </div>
+        <button onclick="toggleMobileMenu()" class="p-2 text-stone-700 bg-stone-100 hover:bg-stone-200 rounded focus:outline-none">
+            <span id="menu-icon" class="text-xl font-bold">&#x2630;</span>
+        </button>
+    </div>
+
+    <nav id="sidebar" class="hidden md:flex w-full md:w-64 bg-white border-b md:border-b-0 md:border-r border-stone-200 flex-col z-20 shadow-sm absolute md:relative top-[61px] md:top-0 left-0 h-[calc(100vh-61px)] md:h-full transition-all duration-200">
+        <div class="p-6 border-b border-stone-200 hidden md:block">
+            <h1 class="text-2xl font-bold text-slate-800 tracking-tight">&#x1F6E1; Clari5 Analyst</h1>
+            <p class="text-xs text-stone-500 mt-1 uppercase tracking-wider">Vendor Analysis Report</p>
+        </div>
+        <div class="flex-1 overflow-y-auto custom-scroll py-4 bg-white">
+            <ul class="space-y-1">
+                <li><button onclick="switchTab('exec-summary')" id="btn-exec-summary" class="nav-btn active w-full text-left px-6 py-3 text-sm text-stone-700 hover:bg-stone-100 transition-colors">&#x1F4CB; Executive Summary</button></li>
+                <li><button onclick="switchTab('architecture')" id="btn-architecture" class="nav-btn w-full text-left px-6 py-3 text-sm text-stone-700 hover:bg-stone-100 transition-colors">&#x2699; Platform Architecture</button></li>
+                <li><button onclick="switchTab('fraud-aml')" id="btn-fraud-aml" class="nav-btn w-full text-left px-6 py-3 text-sm text-stone-700 hover:bg-stone-100 transition-colors">&#x1F50D; Fraud & AML Engine</button></li>
+                <li><button onclick="switchTab('operations')" id="btn-operations" class="nav-btn w-full text-left px-6 py-3 text-sm text-stone-700 hover:bg-stone-100 transition-colors">&#x1F468;&#x200D;&#x1F4BB; Analyst Operations</button></li>
+                <li><button onclick="switchTab('analytics')" id="btn-analytics" class="nav-btn w-full text-left px-6 py-3 text-sm text-stone-700 hover:bg-stone-100 transition-colors">&#x1F4CA; Data & Analytics</button></li>
+            </ul>
+        </div>
+        <div class="p-4 border-t border-stone-200 text-xs text-stone-400 bg-white">
+            Confidential - Internal Research Only
+        </div>
+    </nav>
+
+    <main class="flex-1 h-full overflow-y-auto custom-scroll relative bg-stone-50">
+        
+        <div id="exec-summary" class="tab-content p-4 md:p-8 max-w-6xl mx-auto">
+            <header class="mb-6 border-b border-stone-200 pb-4">
+                <h2 class="text-2xl md:text-3xl font-bold text-slate-800">Executive Summary & Overview</h2>
+            </header>
+            
+            <p class="text-base md:text-lg text-stone-600 mb-6 leading-relaxed">
+                This section provides a high-level overview of CustomerXPs' Clari5 platform. As a Senior Fraud Technology Consultant, this view is essential for understanding the platform's market positioning, core value proposition, and how it compares against industry competitors. It synthesizes company background, core platform dualities (EFM/AML), and high-level integrations.
+            </p>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                <div class="glass-panel p-5 rounded-lg shadow-sm border-t-4 border-t-teal-600">
+                    <h3 class="text-xl font-semibold mb-3 text-slate-800">1. Company Overview</h3>
+                    <p class="text-stone-600 text-sm leading-relaxed mb-4">
+                        Clari5 is the flagship product of CustomerXPs. It is a highly regarded "Central Nervous System" for banks, providing real-time, cross-channel Enterprise Fraud Management (EFM) and Anti-Money Laundering (AML). It processes billions of transactions globally, focusing on breaking down channel silos to create a single, unified view of customer behavior.
+                    </p>
+                    <div class="flex flex-wrap gap-2 text-xs font-semibold text-teal-700">
+                        <span class="bg-teal-50 px-2 py-1 rounded">Real-time</span>
+                        <span class="bg-teal-50 px-2 py-1 rounded">Cross-channel</span>
+                        <span class="bg-teal-50 px-2 py-1 rounded">AI/ML Driven</span>
+                    </div>
+                </div>
+
+                <div class="glass-panel p-5 rounded-lg shadow-sm border-t-4 border-t-blue-600">
+                    <h3 class="text-xl font-semibold mb-3 text-slate-800">2. Competitor Comparison</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left text-stone-600 min-w-[400px]">
+                            <thead class="text-xs text-stone-700 uppercase bg-stone-100">
+                                <tr>
+                                    <th class="px-4 py-2 rounded-tl">Feature / Vendor</th>
+                                    <th class="px-4 py-2 font-bold text-teal-700">Clari5</th>
+                                    <th class="px-4 py-2">Actimize</th>
+                                    <th class="px-4 py-2 rounded-tr">Feedzai</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="border-b border-stone-100">
+                                    <td class="px-4 py-2 font-medium">Cross-Channel Data</td>
+                                    <td class="px-4 py-2 text-green-600">&#x2714; High</td>
+                                    <td class="px-4 py-2">&#x2714; High</td>
+                                    <td class="px-4 py-2">&#x2714; High</td>
+                                </tr>
+                                <tr class="border-b border-stone-100">
+                                    <td class="px-4 py-2 font-medium">Core Focus</td>
+                                    <td class="px-4 py-2 font-semibold">Banking Context</td>
+                                    <td class="px-4 py-2">Capital Mkts/Bank</td>
+                                    <td class="px-4 py-2">Payments</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4 py-2 font-medium">Implementation Speed</td>
+                                    <td class="px-4 py-2 text-green-600">&#x2714; Faster</td>
+                                    <td class="px-4 py-2">&#x26A0; Moderate</td>
+                                    <td class="px-4 py-2">&#x26A0; Moderate</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="glass-panel p-5 rounded-lg shadow-sm">
+                    <h3 class="text-xl font-semibold mb-3 text-slate-800">3. Enterprise Fraud Management (EFM)</h3>
+                    <p class="text-stone-600 text-sm leading-relaxed mb-4">
+                        The EFM platform acts as a unified hub monitoring Internet Banking, Mobile Banking, Cards, ATM, Core Banking, and Branch transactions. It identifies complex patterns that span across these traditionally siloed systems. By analyzing the contextual relationship between events across channels in real-time, it intervenes before funds leave the institution.
+                    </p>
+                </div>
+                <div class="glass-panel p-5 rounded-lg shadow-sm">
+                    <h3 class="text-xl font-semibold mb-3 text-slate-800">4. AML Platform</h3>
+                    <p class="text-stone-600 text-sm leading-relaxed mb-4">
+                        Integrated seamlessly with the EFM side, the AML suite covers the entire compliance lifecycle: Customer Due Diligence (CDD/KYC), Watch-list Screening, Suspicious Activity Monitoring (SAM), and Regulatory Reporting (SAR filing). It leverages the same underlying cross-channel data lake, significantly reducing false positives compared to legacy batch AML systems.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div id="architecture" class="tab-content hidden p-4 md:p-8 max-w-6xl mx-auto">
+            <header class="mb-6 border-b border-stone-200 pb-4">
+                <h2 class="text-2xl md:text-3xl font-bold text-slate-800">Platform & Data Architecture</h2>
+            </header>
+            
+            <p class="text-base md:text-lg text-stone-600 mb-6 leading-relaxed">
+                This section dissects the technical foundation of Clari5. You will explore the multi-layered system architecture, the integration mechanisms via APIs, the core engines powering real-time decisions, and the foundational 360-degree data model. This is critical for understanding how the system ingests, processes, and scores transactions in milliseconds.
+            </p>
+
+            <div class="glass-panel p-4 md:p-6 rounded-lg shadow-sm mb-8 bg-white overflow-x-auto">
+                <h3 class="text-xl font-semibold mb-6 text-slate-800 text-center">5. Product Architecture Diagram</h3>
+                
+                <div class="min-w-[600px] max-w-3xl mx-auto border border-stone-200 p-6 rounded-xl bg-stone-50">
+                    <div class="grid grid-cols-5 gap-2 text-center text-xs font-semibold mb-2">
+                        <div class="bg-blue-100 border border-blue-200 p-3 rounded text-blue-800">ATM</div>
+                        <div class="bg-blue-100 border border-blue-200 p-3 rounded text-blue-800">Mobile/UPI</div>
+                        <div class="bg-blue-100 border border-blue-200 p-3 rounded text-blue-800">Internet</div>
+                        <div class="bg-blue-100 border border-blue-200 p-3 rounded text-blue-800">Branch</div>
+                        <div class="bg-blue-100 border border-blue-200 p-3 rounded text-blue-800">Core/Cards</div>
+                    </div>
+                    
+                    <div class="block-arrow">&#x21E3;</div>
+                    <div class="bg-stone-200 border border-stone-300 p-2 rounded text-center text-sm font-bold text-stone-700 mb-2">
+                        6. API Integration Layer & Event Bus (Real-time Ingestion)
+                    </div>
+                    <div class="block-arrow">&#x21E3;</div>
+                    
+                    <div class="grid grid-cols-3 gap-4 text-center mb-2">
+                        <div class="bg-teal-50 border-2 border-teal-500 p-4 rounded-lg shadow-sm">
+                            <h4 class="font-bold text-teal-800 mb-2">7. Rule Engine</h4>
+                            <p class="text-xs text-stone-600">Deterministic scenarios, threshold monitoring, regulatory limits.</p>
+                        </div>
+                        <div class="bg-indigo-50 border-2 border-indigo-500 p-4 rounded-lg shadow-sm relative">
+                            <span class="absolute -top-3 -right-3 bg-indigo-600 text-white text-xs px-2 py-1 rounded-full">AI/ML</span>
+                            <h4 class="font-bold text-indigo-800 mb-2">8. Risk Engine</h4>
+                            <p class="text-xs text-stone-600">Probabilistic models, anomaly detection, predictive risk scoring.</p>
+                        </div>
+                        <div class="bg-amber-50 border-2 border-amber-500 p-4 rounded-lg shadow-sm">
+                            <h4 class="font-bold text-amber-800 mb-2">9. CEP Engine</h4>
+                            <p class="text-xs text-stone-600">Complex Event Processing across channels (Velocity, sequence).</p>
+                        </div>
+                    </div>
+                    
+                    <div class="block-arrow">&#x21E3;</div>
+                    <div class="bg-slate-700 text-white p-4 rounded-lg text-center shadow-inner">
+                        <h4 class="font-bold mb-1">10. 360-Degree Customer Data Model</h4>
+                        <p class="text-xs text-slate-300">Unified memory containing profiles, historical behavior, and entity networks.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="glass-panel p-5 rounded-lg shadow-sm">
+                    <h3 class="text-xl font-semibold mb-3 text-slate-800">11. Risk Scoring Methodology</h3>
+                    <ul class="space-y-3 text-sm text-stone-600">
+                        <li class="flex items-start">
+                            <span class="text-teal-600 mr-2">&#x25B6;</span>
+                            <div><strong>Real-Time Synthesis:</strong> The score recalculates instantly upon every event (login, beneficiary addition, payment).</div>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-teal-600 mr-2">&#x25B6;</span>
+                            <div><strong>Component Scoring:</strong> Combines monetary anomalies, non-monetary anomalies (geo-location jumps), and network risk.</div>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-teal-600 mr-2">&#x25B6;</span>
+                            <div><strong>Action Thresholds:</strong> Scores map to actions: Allow, Step-up Auth (MFA), Block, or Alert.</div>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="glass-panel p-5 rounded-lg shadow-sm">
+                    <h3 class="text-xl font-semibold mb-3 text-slate-800">12. API Integrations</h3>
+                    <p class="text-stone-600 text-sm mb-4 leading-relaxed">
+                        Clari5 uses a lightweight API gateway architecture hooking directly into the bank's Enterprise Service Bus (ESB).
+                    </p>
+                    <div class="bg-stone-100 p-3 rounded border border-stone-200 font-mono text-xs text-stone-700 mb-2 break-words">
+                        POST /api/v1/event/evaluate<br>
+                        { "channel": "UPI", "event_type": "PAYMENT", "amount": 50000 }
+                    </div>
+                    <p class="text-xs text-teal-700 font-semibold italic">Response time SLA is typically sub-100 milliseconds.</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="fraud-aml" class="tab-content hidden p-4 md:p-8 max-w-6xl mx-auto">
+            <header class="mb-6 border-b border-stone-200 pb-4">
+                <h2 class="text-2xl md:text-3xl font-bold text-slate-800">Detection Typologies & Engines</h2>
+            </header>
+
+            <p class="text-base md:text-lg text-stone-600 mb-6 leading-relaxed">
+                Specific capabilities of Clari5's real-time detection systems across diverse channels:
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+                <div class="bg-white border border-stone-200 p-5 rounded-lg shadow-sm">
+                    <div class="text-2xl mb-2">&#x23F1;</div>
+                    <h4 class="font-bold text-slate-800 mb-2">13. Real-time Fraud Detection</h4>
+                    <p class="text-sm text-stone-600">Intervenes during authorization. Returns a hard decline or triggers step-up authentication dynamically.</p>
+                </div>
+
+                <div class="bg-white border border-stone-200 p-5 rounded-lg shadow-sm">
+                    <div class="text-2xl mb-2">&#x1F4B8;</div>
+                    <h4 class="font-bold text-slate-800 mb-2">14. Transaction Monitoring</h4>
+                    <p class="text-sm text-stone-600">Continuous profiling over 30/60/90 days to establish baselines and flag deviations.</p>
+                </div>
+
+                <div class="bg-white border border-stone-200 p-5 rounded-lg shadow-sm">
+                    <div class="text-2xl mb-2">&#x1F577;</div>
+                    <h4 class="font-bold text-slate-800 mb-2">15. Mule Account Detection</h4>
+                    <p class="text-sm text-stone-600">Identifies dormant accounts receiving high-velocity deposits followed by immediate withdrawals.</p>
+                </div>
+
+                <div class="bg-white border border-stone-200 p-5 rounded-lg shadow-sm border-l-4 border-l-red-500">
+                    <div class="text-2xl mb-2">&#x1F9B9;&#x200D;&#x2642;&#xFE0F;</div>
+                    <h4 class="font-bold text-slate-800 mb-2">16. Account Takeover (ATO)</h4>
+                    <p class="text-sm text-stone-600">Correlates failed logins, device fingerprint changes, and impossible geographical travel sequences.</p>
+                </div>
+
+                <div class="bg-white border border-stone-200 p-5 rounded-lg shadow-sm border-l-4 border-l-orange-500">
+                    <div class="text-2xl mb-2">&#x1F4DE;</div>
+                    <h4 class="font-bold text-slate-800 mb-2">17. Scam Detection</h4>
+                    <p class="text-sm text-stone-600">Detects social engineering / APP fraud via telemetry indicators like active phone calls or active screen sharing apps during transaction creation.</p>
+                </div>
+
+                <div class="bg-white border border-stone-200 p-5 rounded-lg shadow-sm">
+                    <div class="text-2xl mb-2">&#x1F4F1;</div>
+                    <h4 class="font-bold text-slate-800 mb-2">18. UPI Fraud Detection</h4>
+                    <p class="text-sm text-stone-600">Handles massive transaction scales. Flags request scams and rapid virtual payment address (VPA) creation anomalies.</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="operations" class="tab-content hidden p-4 md:p-8 max-w-6xl mx-auto">
+            <header class="mb-6 border-b border-stone-200 pb-4">
+                <h2 class="text-2xl md:text-3xl font-bold text-slate-800">Analyst Workflows & Operations</h2>
+            </header>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <div>
+                    <h3 class="text-xl font-bold mb-4 text-slate-800">19. Alert & Case Lifecycle</h3>
+                    <div class="space-y-3">
+                        <div class="flex items-center p-3 bg-white rounded border border-stone-200 shadow-sm">
+                            <div class="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center font-bold text-slate-600 mr-4">1</div>
+                            <div class="flex-1"><h5 class="font-bold text-sm">Event Scoring</h5><p class="text-xs text-stone-500">Risk scores exceeding boundaries automatically trigger internal analyst alerts.</p></div>
+                        </div>
+                        <div class="flex items-center p-3 bg-white rounded border border-stone-200 shadow-sm">
+                            <div class="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center font-bold text-slate-600 mr-4">2</div>
+                            <div class="flex-1"><h5 class="font-bold text-sm">Smart Routing</h5><p class="text-xs text-stone-500">Alerts automatically map directly to targeted analyst work queues based on risk severity segments.</p></div>
+                        </div>
+                        <div class="flex items-center p-3 bg-white rounded border border-stone-200 shadow-sm border-l-4 border-l-teal-500">
+                            <div class="w-8 h-8 rounded-full bg-teal-100 flex items-center justify-center font-bold text-teal-700 mr-4">3</div>
+                            <div class="flex-1"><h5 class="font-bold text-sm">Investigation</h5><p class="text-xs text-stone-500">Analysts parse out 360 behavior views alongside profile history parameters.</p></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-6">
+                    <div class="glass-panel p-5 rounded-lg shadow-sm bg-white">
+                        <h3 class="text-xl font-bold mb-3 text-slate-800">20. Network Analytics</h3>
+                        <p class="text-sm text-stone-600 mb-4">Maps complex behavioral associations out dynamically using shared data attributes.</p>
+                        <div class="bg-slate-800 p-4 rounded text-center text-teal-400 font-mono text-xs overflow-x-auto whitespace-pre">[User A] --(Shared Device)--> [User B]</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="analytics" class="tab-content hidden p-4 md:p-8 max-w-6xl mx-auto">
+            <header class="mb-6 border-b border-stone-200 pb-4">
+                <h2 class="text-2xl md:text-3xl font-bold text-slate-800">Metrics & Analytics Dashboards</h2>
+            </header>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <div class="glass-panel p-4 rounded-lg shadow-sm bg-white">
+                    <h3 class="text-sm font-bold mb-4 text-slate-800 text-center">Fraud Prevention by Channel (Monthly M$)</h3>
+                    <div class="chart-container"><canvas id="channelChart"></canvas></div>
+                </div>
+                <div class="glass-panel p-4 rounded-lg shadow-sm bg-white">
+                    <h3 class="text-sm font-bold mb-4 text-slate-800 text-center">Clari5 Capability Radar vs Competitors</h3>
+                    <div class="chart-container"><canvas id="radarChart"></canvas></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let chartsRendered = false;
+
+        function toggleMobileMenu() {
+            const sidebar = document.getElementById('sidebar');
+            const menuIcon = document.getElementById('menu-icon');
+            if (sidebar.classList.contains('hidden')) {
+                sidebar.classList.remove('hidden');
+                sidebar.classList.add('flex');
+                menuIcon.innerHTML = '&#x2715;'; // Shows 'X' when open
+            } else {
+                sidebar.classList.add('hidden');
+                sidebar.classList.remove('flex');
+                menuIcon.innerHTML = '&#x2630;'; // Shows hamburger when closed
+            }
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(tabId).classList.remove('hidden');
+            
+            document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById('btn-' + tabId).classList.add('active');
+
+            // Automatically shut down mobile menu overlay after selection 
+            if (window.innerWidth < 768) {
+                toggleMobileMenu();
+            }
+
+            if (tabId === 'analytics' && !chartsRendered) {
+                renderCharts();
+                chartsRendered = true;
+            }
+        }
+
+        function renderCharts() {
+            const ctxChannel = document.getElementById('channelChart').getContext('2d');
+            new Chart(ctxChannel, {
+                type: 'bar',
+                data: {
+                    labels: ['Internet', 'Mobile', 'UPI', 'Cards', 'Branch', 'ATM'],
+                    datasets: [{
+                        label: 'Fraud Prevented (Millions $)',
+                        data: [12.5, 18.2, 22.4, 15.1, 3.2, 5.8],
+                        backgroundColor: '#0f766e',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } }
+                }
+            });
+
+            const ctxRadar = document.getElementById('radarChart').getContext('2d');
+            new Chart(ctxRadar, {
+                type: 'radar',
+                data: {
+                    labels: ['Real-time Perf.', 'Cross-Channel DB', 'Implementation Speed', 'UI/Analyst Flow', 'ML Capabilities', 'Link Analysis'],
+                    datasets: [
+                        { label: 'Clari5', data: [95, 98, 85, 80, 85, 90], backgroundColor: 'rgba(15, 118, 110, 0.2)', borderColor: '#0f766e' },
+                        { label: 'Legacy Competitors', data: [75, 60, 65, 75, 80, 85], backgroundColor: 'rgba(100, 116, 139, 0.2)', borderColor: '#64748b' }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        }
+    </script>
+</body>
+</html>
