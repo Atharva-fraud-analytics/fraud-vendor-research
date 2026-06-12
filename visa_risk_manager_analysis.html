@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visa Risk Manager (VRM) - Strategic Analysis</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Chosen Palette: Corporate Trust (Navy, Slate, Crisp White, Amber Accent) -->
+    <!-- Application Structure Plan: The SPA is structured into a dashboard interface with 5 key thematic pillars: 1) Executive Summary (Product overview, Case studies, Competition), 2) System Architecture (Architecture diagram, APIs), 3) Detection Engine (Scoring, Rules, Real-time processing), 4) Threat Intelligence (Specific fraud vectors like ATO, Merchant fraud), and 5) Analyst Operations (Workflow, Dashboard, Alerts). This structure was chosen because analyzing an enterprise fraud system requires moving from high-level value propositions down to technical implementation and finally operational execution. This prevents cognitive overload and allows users (presumably stakeholders or technical teams) to navigate directly to their area of interest. -->
+    <!-- Visualization & Content Choices: 
+         - Competitor Analysis -> Compare -> Radar Chart (Chart.js) -> Hover interaction -> Shows VRM strengths in network visibility.
+         - Architecture -> Organize -> CSS Grid Diagram (No SVG) -> Hover states -> Explains component roles without external dependencies.
+         - Risk Scoring -> Inform/Change -> Line Chart (Chart.js) -> Tooltips -> Illustrates real-time score distribution over transaction volume.
+         - Threat Vectors -> Organize/Inform -> Interactive Tabs + Doughnut Chart (Chart.js) -> Click tabs to update chart data -> Allows deep dive into specific fraud types without cluttering the screen.
+         - Analyst Workflow -> Organize -> CSS Flexbox Diagram with CSS triangles -> Hover states -> Clearly outlines the human-in-the-loop process without Mermaid/SVG. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; /* Slate 50 */
+            color: #0f172a; /* Slate 900 */
+        }
+
+        /* Chart Container Styling - MANDATORY */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 100%; /* Adapts to parent Tailwind grid/flex */
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px; /* Base height */
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+        @media (min-width: 1024px) {
+            .chart-container.large-chart {
+                height: 450px;
+            }
+        }
+
+        /* Custom Diagram CSS (No SVG) */
+        .diagram-box {
+            background: white;
+            border: 2px solid #cbd5e1; /* Slate 300 */
+            border-radius: 0.5rem;
+            padding: 1rem;
+            text-align: center;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 10;
+        }
+        .diagram-box:hover {
+            border-color: #1e3a8a; /* Blue 900 */
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+        }
+        
+        .css-arrow-down {
+            width: 0; 
+            height: 0; 
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-top: 15px solid #94a3b8; /* Slate 400 */
+            margin: 0.5rem auto;
+        }
+        .css-arrow-right {
+            width: 0; 
+            height: 0; 
+            border-top: 10px solid transparent;
+            border-bottom: 10px solid transparent;
+            border-left: 15px solid #94a3b8;
+            display: inline-block;
+            vertical-align: middle;
+            margin: 0 1rem;
+        }
+
+        .nav-btn.active {
+            background-color: #1e3a8a; /* Blue 900 */
+            color: white;
+            font-weight: 600;
+        }
+        
+        .threat-tab.active {
+            border-left: 4px solid #f59e0b; /* Amber 500 */
+            background-color: #f1f5f9; /* Slate 100 */
+            font-weight: 600;
+        }
+        
+        /* Utility to hide sections */
+        .section-hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body class="antialiased flex flex-col h-screen overflow-hidden">
+
+    <!-- Top Navigation & Branding -->
+    <header class="bg-white shadow-sm border-b border-slate-200 z-20 flex-none">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 bg-blue-900 rounded flex items-center justify-center text-white font-bold text-xl">V</div>
+                <h1 class="text-xl font-bold text-slate-800 tracking-tight">Risk Manager <span class="text-slate-400 font-light hidden sm:inline">| Strategic Analysis</span></h1>
+            </div>
+            <div class="text-sm font-medium text-slate-500">
+                Senior Fraud Tech Consultant Report
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Application Layout -->
+    <div class="flex-1 flex overflow-hidden">
+        
+        <!-- Sidebar Navigation -->
+        <nav class="w-64 bg-slate-50 border-r border-slate-200 flex-none overflow-y-auto hidden md:block">
+            <div class="p-4 space-y-2">
+                <button onclick="navigate('exec-summary')" id="nav-exec-summary" class="nav-btn active w-full text-left px-4 py-3 rounded-md text-sm transition-colors hover:bg-slate-200 text-slate-700">
+                    <span class="mr-2">&#128202;</span> Executive Summary
+                </button>
+                <button onclick="navigate('architecture')" id="nav-architecture" class="nav-btn w-full text-left px-4 py-3 rounded-md text-sm transition-colors hover:bg-slate-200 text-slate-700">
+                    <span class="mr-2">&#128423;</span> System Architecture
+                </button>
+                <button onclick="navigate('detection')" id="nav-detection" class="nav-btn w-full text-left px-4 py-3 rounded-md text-sm transition-colors hover:bg-slate-200 text-slate-700">
+                    <span class="mr-2">&#9881;</span> Detection Engine
+                </button>
+                <button onclick="navigate('threats')" id="nav-threats" class="nav-btn w-full text-left px-4 py-3 rounded-md text-sm transition-colors hover:bg-slate-200 text-slate-700">
+                    <span class="mr-2">&#128373;</span> Threat Vectors
+                </button>
+                <button onclick="navigate('operations')" id="nav-operations" class="nav-btn w-full text-left px-4 py-3 rounded-md text-sm transition-colors hover:bg-slate-200 text-slate-700">
+                    <span class="mr-2">&#128187;</span> Analyst Operations
+                </button>
+            </div>
+        </nav>
+
+        <!-- Mobile Navigation (Select Dropdown) -->
+        <div class="md:hidden w-full bg-white border-b p-2 flex-none absolute top-16 z-10 shadow-sm">
+            <select id="mobile-nav" onchange="navigate(this.value)" class="w-full p-2 border rounded border-slate-300 text-slate-700 bg-slate-50">
+                <option value="exec-summary">Executive Summary</option>
+                <option value="architecture">System Architecture</option>
+                <option value="detection">Detection Engine</option>
+                <option value="threats">Threat Vectors</option>
+                <option value="operations">Analyst Operations</option>
+            </select>
+        </div>
+
+        <!-- Content Area -->
+        <main class="flex-1 overflow-y-auto bg-white p-4 md:p-8 mt-12 md:mt-0 relative scroll-smooth">
+            <div class="max-w-5xl mx-auto pb-20">
+
+                <!-- SECTION 1: Executive Summary -->
+                <section id="exec-summary" class="view-section">
+                    <div class="mb-8">
+                        <h2 class="text-3xl font-bold text-slate-900 mb-2">Executive Summary</h2>
+                        <p class="text-slate-600 text-lg leading-relaxed">
+                            Visa Risk Manager (VRM) represents a paradigm shift from reactive to proactive fraud mitigation. This section outlines the core product capabilities, proven case studies, and how VRM compares to existing market alternatives. 
+                        </p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <div class="bg-slate-50 p-6 rounded-xl border border-slate-200 shadow-sm">
+                            <div class="text-amber-500 text-2xl mb-2">&#9889;</div>
+                            <h3 class="font-bold text-slate-800 mb-2">1. Product Overview</h3>
+                            <p class="text-sm text-slate-600">VRM is a comprehensive, network-level suite providing real-time decisioning. It leverages Visa's global transaction data pool to authorize or decline transactions before they process, reducing exposure instantly.</p>
+                        </div>
+                        <div class="bg-slate-50 p-6 rounded-xl border border-slate-200 shadow-sm">
+                            <div class="text-blue-600 text-2xl mb-2">&#128200;</div>
+                            <h3 class="font-bold text-slate-800 mb-2">17. Case Studies</h3>
+                            <p class="text-sm text-slate-600">Top-tier issuers implementing VRM report an average <strong>30% reduction in gross fraud basis points</strong> within 6 months, alongside a 15% decrease in false-positive declines, boosting customer friction-less checkout.</p>
+                        </div>
+                        <div class="bg-slate-50 p-6 rounded-xl border border-slate-200 shadow-sm">
+                            <div class="text-emerald-600 text-2xl mb-2">&#127919;</div>
+                            <h3 class="font-bold text-slate-800 mb-2">Network Advantage</h3>
+                            <p class="text-sm text-slate-600">Unlike isolated in-house systems, VRM sees cross-merchant and cross-issuer attack patterns globally, enabling preemptive rule deployment before an attack hits a specific portfolio.</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-6 border border-slate-200 rounded-xl shadow-sm">
+                        <h3 class="font-bold text-slate-800 mb-4 text-xl border-b pb-2">18. Competitor Comparison</h3>
+                        <p class="text-sm text-slate-600 mb-6">Comparison of VRM against standard legacy rule-based systems and bespoke in-house AI models based on key performance vectors.</p>
+                        <div class="chart-container large-chart">
+                            <canvas id="competitorChart"></canvas>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- SECTION 2: System Architecture -->
+                <section id="architecture" class="view-section section-hidden">
+                    <div class="mb-8">
+                        <h2 class="text-3xl font-bold text-slate-900 mb-2">System Architecture & Integrations</h2>
+                        <p class="text-slate-600 text-lg leading-relaxed">
+                            Understanding how VRM sits within the transaction flow is crucial. It operates in the authorization stream (in-line), requiring robust API structures and microsecond latency to process complex risk models without degrading the user checkout experience.
+                        </p>
+                    </div>
+
+                    <div class="bg-slate-50 p-8 rounded-xl border border-slate-200 shadow-sm mb-8 overflow-x-auto">
+                        <h3 class="font-bold text-slate-800 mb-6 text-xl text-center">2. High-Level Authorization Architecture</h3>
+                        
+                        <!-- CSS Grid Diagram (No SVG) -->
+                        <div class="min-w-[600px] flex flex-col items-center">
+                            
+                            <!-- Top Row: Initiator -->
+                            <div class="flex justify-between w-full max-w-3xl mb-2">
+                                <div class="diagram-box w-48 border-blue-300 bg-blue-50">
+                                    <div class="font-bold text-blue-900">Merchant/Acquirer</div>
+                                    <div class="text-xs mt-1 text-slate-500">Initiates Auth Request</div>
+                                </div>
+                                <div class="hidden md:flex flex-col justify-center items-center flex-1">
+                                    <div class="text-xs text-slate-400 mb-1">ISO 8583 Data Stream</div>
+                                    <div class="w-full h-0 border-t-2 border-dashed border-slate-400"></div>
+                                </div>
+                            </div>
+
+                            <div class="css-arrow-down"></div>
+
+                            <!-- Middle Row: VRM Core (VisaNet) -->
+                            <div class="w-full max-w-4xl diagram-box border-blue-900 border-4 bg-white relative">
+                                <div class="absolute -top-3 left-4 bg-white px-2 text-xs font-bold text-blue-900">VisaNet Infrastructure</div>
+                                <h4 class="font-bold text-xl mb-4 text-slate-800">Visa Risk Manager (VRM) Engine</h4>
+                                
+                                <div class="grid grid-cols-3 gap-4">
+                                    <div class="bg-slate-100 p-3 rounded border border-slate-300">
+                                        <div class="font-semibold text-sm">Data Enrichment</div>
+                                        <div class="text-xs text-slate-500 mt-1">Velocity, IP Geolocation, Device ID</div>
+                                    </div>
+                                    <div class="bg-amber-50 p-3 rounded border border-amber-200">
+                                        <div class="font-semibold text-sm">3. Risk Scoring (AI/ML)</div>
+                                        <div class="text-xs text-slate-500 mt-1">Advanced Auth Models (VAA)</div>
+                                    </div>
+                                    <div class="bg-emerald-50 p-3 rounded border border-emerald-200">
+                                        <div class="font-semibold text-sm">6. Rule Engine</div>
+                                        <div class="text-xs text-slate-500 mt-1">Custom Issuer Logic Execution</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="css-arrow-down"></div>
+
+                            <!-- Bottom Row: Issuer -->
+                            <div class="flex justify-center w-full max-w-3xl">
+                                <div class="diagram-box w-64 border-indigo-300 bg-indigo-50">
+                                    <div class="font-bold text-indigo-900">Issuer / Core Banking</div>
+                                    <div class="text-xs mt-1 text-slate-500">Final Decision (Approve/Decline) based on VRM Advice</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-6 border border-slate-200 rounded-xl shadow-sm">
+                        <h3 class="font-bold text-slate-800 mb-4 text-xl border-b pb-2">11. API Integrations</h3>
+                        <p class="text-sm text-slate-600 mb-4">VRM integration extends beyond traditional ISO messages via modern RESTful endpoints for configuration and post-auth operations.</p>
+                        <ul class="space-y-3">
+                            <li class="flex items-start">
+                                <span class="text-emerald-500 mr-2">&#10003;</span>
+                                <div>
+                                    <strong class="text-slate-800">Real-Time Scoring API:</strong> Allows non-card digital channels to ping VRM models for risk assessment prior to formal authorization.
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-emerald-500 mr-2">&#10003;</span>
+                                <div>
+                                    <strong class="text-slate-800">Case Management API:</strong> Bi-directional sync with internal CRM/Ticketing systems (e.g., Jira, ServiceNow) to manage analyst workflows without duplicating effort.
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-emerald-500 mr-2">&#10003;</span>
+                                <div>
+                                    <strong class="text-slate-800">Rule Lifecycle API:</strong> CI/CD integration for dynamically updating fraud rules as code, pushing new parameters based on internal data science outputs.
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </section>
+
+                <!-- SECTION 3: Detection Engine -->
+                <section id="detection" class="view-section section-hidden">
+                    <div class="mb-8">
+                        <h2 class="text-3xl font-bold text-slate-900 mb-2">Detection Engine Mechanics</h2>
+                        <p class="text-slate-600 text-lg leading-relaxed">
+                            The core of VRM is its ability to score risk and apply deterministic rules in milliseconds. This section explores how machine learning models assign risk profiles and how custom rules allow institutions to control their specific risk appetite.
+                        </p>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                        <div class="bg-white p-6 border border-slate-200 rounded-xl shadow-sm">
+                            <h3 class="font-bold text-slate-800 mb-2">3. Risk Scoring & 4. Auth Assessment</h3>
+                            <p class="text-sm text-slate-600 mb-4">Visa Advanced Authorization (VAA) generates a score (01-99). Higher scores indicate higher probability of fraud. This interactive chart simulates transaction volume against assigned risk scores over a 24-hour period.</p>
+                            <div class="chart-container">
+                                <canvas id="riskScoreChart"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-6 border border-slate-200 rounded-xl shadow-sm flex flex-col">
+                            <h3 class="font-bold text-slate-800 mb-2">6. Rule Engine Simulation</h3>
+                            <p class="text-sm text-slate-600 mb-4">Interactive demonstration of how analysts configure deterministic rules to trigger actions based on the VAA score and transaction parameters.</p>
+                            
+                            <div class="flex-1 bg-slate-800 rounded-lg p-4 font-mono text-sm text-green-400 overflow-y-auto">
+                                <div class="mb-2 text-slate-400">/* Active Rule Configuration */</div>
+                                <div><span class="text-pink-400">IF</span> Transaction_Type <span class="text-blue-300">==</span> "E-Commerce"</div>
+                                <div><span class="text-pink-400">AND</span> VAA_Risk_Score <span class="text-blue-300">>=</span> <span id="sim-score-val" class="text-amber-300">85</span></div>
+                                <div><span class="text-pink-400">AND</span> Cross_Border <span class="text-blue-300">==</span> True</div>
+                                <div class="mt-2"><span class="text-pink-400">THEN ACTION:</span> <span id="sim-action" class="bg-red-900 text-white px-1 rounded">DECLINE</span></div>
+                                <div class="mt-1"><span class="text-pink-400">LOG TO:</span> "High_Risk_Queue"</div>
+                            </div>
+
+                            <div class="mt-4 bg-slate-50 p-4 border rounded">
+                                <label class="block text-sm font-medium text-slate-700 mb-2">7. Real-Time Testing: Adjust Risk Threshold</label>
+                                <input type="range" min="1" max="99" value="85" class="w-full accent-blue-900" id="ruleSlider" oninput="updateRuleSim(this.value)">
+                                <div class="flex justify-between text-xs text-slate-500 mt-1">
+                                    <span>Lower Risk (Approve More)</span>
+                                    <span>Higher Risk (Block More)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- SECTION 4: Threat Vectors -->
+                <section id="threats" class="view-section section-hidden">
+                    <div class="mb-8">
+                        <h2 class="text-3xl font-bold text-slate-900 mb-2">Targeted Threat Vectors</h2>
+                        <p class="text-slate-600 text-lg leading-relaxed">
+                            Fraud is not a monolith. VRM utilizes specific modules and data groupings to target distinct attack vectors. Explore the distribution of detection triggers across different fraud categories below.
+                        </p>
+                    </div>
+
+                    <div class="flex flex-col md:flex-row gap-6">
+                        <!-- Vertical Tabs -->
+                        <div class="md:w-1/3 flex flex-col space-y-1">
+                            <button onclick="updateThreatData('card')" class="threat-tab active text-left px-4 py-3 rounded text-sm text-slate-700 hover:bg-slate-100 transition">
+                                12. Card Fraud Detection
+                            </button>
+                            <button onclick="updateThreatData('merchant')" class="threat-tab text-left px-4 py-3 rounded text-sm text-slate-700 hover:bg-slate-100 transition">
+                                13. Merchant Fraud Detection
+                            </button>
+                            <button onclick="updateThreatData('ato')" class="threat-tab text-left px-4 py-3 rounded text-sm text-slate-700 hover:bg-slate-100 transition">
+                                14. Account Takeover (ATO)
+                            </button>
+                            <button onclick="updateThreatData('digital')" class="threat-tab text-left px-4 py-3 rounded text-sm text-slate-700 hover:bg-slate-100 transition">
+                                15. Digital Payment Fraud
+                            </button>
+                            <button onclick="updateThreatData('onboarding')" class="threat-tab text-left px-4 py-3 rounded text-sm text-slate-700 hover:bg-slate-100 transition">
+                                16. Customer Onboarding
+                            </button>
+                        </div>
+
+                        <!-- Data Display -->
+                        <div class="md:w-2/3 bg-white p-6 border border-slate-200 rounded-xl shadow-sm">
+                            <h3 id="threat-title" class="font-bold text-slate-800 mb-2 text-xl">Card Fraud Dynamics</h3>
+                            <p id="threat-desc" class="text-sm text-slate-600 mb-6 h-12">Focuses on counterfeit cards, lost/stolen physical cards, and card-not-present (CNP) breaches using compromised PAN data.</p>
+                            
+                            <div class="chart-container">
+                                <canvas id="threatChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- SECTION 5: Analyst Operations -->
+                <section id="operations" class="view-section section-hidden">
+                    <div class="mb-8">
+                        <h2 class="text-3xl font-bold text-slate-900 mb-2">Analyst Operations & Workflow</h2>
+                        <p class="text-slate-600 text-lg leading-relaxed">
+                            Technology identifies risk, but humans investigate nuance. VRM provides extensive tools for fraud analysts to manage alerts, investigate complex cases, and tune the system through feedback loops.
+                        </p>
+                    </div>
+
+                    <div class="bg-white p-6 border border-slate-200 rounded-xl shadow-sm mb-8">
+                        <h3 class="font-bold text-slate-800 mb-6 text-xl border-b pb-2">8. Fraud Analyst Workflow</h3>
+                        
+                        <!-- CSS Flexbox Diagram (No SVG) -->
+                        <div class="flex flex-col md:flex-row justify-between items-center gap-4 py-4 overflow-x-auto pb-6">
+                            
+                            <div class="diagram-box w-40 flex-shrink-0 border-red-200 bg-red-50">
+                                <div class="text-xl mb-1">&#9888;</div>
+                                <div class="font-bold text-sm text-red-800">10. Alert Gen</div>
+                                <div class="text-[10px] mt-1 text-slate-500">Rule triggered "Review" action</div>
+                            </div>
+                            
+                            <div class="hidden md:block css-arrow-right"></div>
+                            <div class="md:hidden css-arrow-down"></div>
+
+                            <div class="diagram-box w-40 flex-shrink-0 border-amber-200 bg-amber-50">
+                                <div class="text-xl mb-1">&#128269;</div>
+                                <div class="font-bold text-sm text-amber-800">Triage</div>
+                                <div class="text-[10px] mt-1 text-slate-500">Analyst views case details in VRM UI</div>
+                            </div>
+
+                            <div class="hidden md:block css-arrow-right"></div>
+                            <div class="md:hidden css-arrow-down"></div>
+
+                            <div class="diagram-box w-40 flex-shrink-0 border-blue-200 bg-blue-50">
+                                <div class="text-xl mb-1">&#128100;</div>
+                                <div class="font-bold text-sm text-blue-800">Investigation</div>
+                                <div class="text-[10px] mt-1 text-slate-500">Customer contact, link analysis</div>
+                            </div>
+
+                            <div class="hidden md:block css-arrow-right"></div>
+                            <div class="md:hidden css-arrow-down"></div>
+
+                            <div class="diagram-box w-40 flex-shrink-0 border-emerald-200 bg-emerald-50 relative">
+                                <div class="text-xl mb-1">&#10004;</div>
+                                <div class="font-bold text-sm text-emerald-800">Disposition</div>
+                                <div class="text-[10px] mt-1 text-slate-500">Mark as Fraud / False Positive</div>
+                                
+                                <!-- Feedback Loop Line (CSS hack) -->
+                                <div class="hidden md:block absolute h-8 w-full border-b-2 border-l-2 border-dashed border-emerald-400 rounded-bl-lg top-full left-1/2 -ml-20 mt-2"></div>
+                                <div class="hidden md:block absolute -left-[180px] top-[110px] text-[10px] text-emerald-600 font-bold bg-white px-1">ML Model Feedback Loop</div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-900 p-6 rounded-xl shadow-inner text-white">
+                        <h3 class="font-bold text-slate-100 mb-4 text-xl">9. Simulated VRM Operations Dashboard</h3>
+                        
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                            <div class="bg-slate-800 p-4 rounded border border-slate-700">
+                                <div class="text-slate-400 text-xs uppercase tracking-wider mb-1">Open Alerts</div>
+                                <div class="text-3xl font-bold text-amber-400">1,248</div>
+                                <div class="text-xs text-red-400 mt-1">&#8593; 12% vs yesterday</div>
+                            </div>
+                            <div class="bg-slate-800 p-4 rounded border border-slate-700">
+                                <div class="text-slate-400 text-xs uppercase tracking-wider mb-1">False Pos. Rate</div>
+                                <div class="text-3xl font-bold text-emerald-400">18.4%</div>
+                                <div class="text-xs text-emerald-400 mt-1">&#8595; 2.1% vs last week</div>
+                            </div>
+                            <div class="bg-slate-800 p-4 rounded border border-slate-700">
+                                <div class="text-slate-400 text-xs uppercase tracking-wider mb-1">Avg Triage Time</div>
+                                <div class="text-3xl font-bold text-white">4m 12s</div>
+                                <div class="text-xs text-slate-400 mt-1">Target: < 5m</div>
+                            </div>
+                            <div class="bg-slate-800 p-4 rounded border border-slate-700">
+                                <div class="text-slate-400 text-xs uppercase tracking-wider mb-1">System Health</div>
+                                <div class="text-3xl font-bold text-blue-400">99.99%</div>
+                                <div class="text-xs text-slate-400 mt-1">Latency: 14ms</div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Application Logic -->
+    <script>
+        // --- Navigation Logic ---
+        function navigate(sectionId) {
+            // Hide all sections
+            document.querySelectorAll('.view-section').forEach(el => {
+                el.classList.add('section-hidden');
+            });
+            // Show target section
+            document.getElementById(sectionId).classList.remove('section-hidden');
+
+            // Update Desktop Nav Active State
+            document.querySelectorAll('.nav-btn').forEach(el => {
+                el.classList.remove('active');
+            });
+            if(document.getElementById('nav-' + sectionId)) {
+                document.getElementById('nav-' + sectionId).classList.add('active');
+            }
+
+            // Sync Mobile Select
+            const mobileSelect = document.getElementById('mobile-nav');
+            if(mobileSelect.value !== sectionId) {
+                mobileSelect.value = sectionId;
+            }
+
+            // Trigger specific animations or chart resizes if needed when view becomes visible
+            window.dispatchEvent(new Event('resize')); 
+        }
+
+
+        // --- Rule Engine Simulation Logic ---
+        function updateRuleSim(value) {
+            document.getElementById('sim-score-val').innerText = value;
+            const actionEl = document.getElementById('sim-action');
+            if (value >= 85) {
+                actionEl.innerText = 'DECLINE';
+                actionEl.className = 'bg-red-900 text-white px-1 rounded';
+            } else if (value >= 60) {
+                actionEl.innerText = 'REVIEW';
+                actionEl.className = 'bg-amber-600 text-white px-1 rounded';
+            } else {
+                actionEl.innerText = 'APPROVE';
+                actionEl.className = 'bg-emerald-600 text-white px-1 rounded';
+            }
+        }
+
+
+        // --- Chart.js Implementations ---
+        
+        // Common Chart Options
+        const commonOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom', labels: { font: { family: 'Inter' } } }
+            }
+        };
+
+        // 1. Competitor Radar Chart
+        const ctxCompetitor = document.getElementById('competitorChart').getContext('2d');
+        new Chart(ctxCompetitor, {
+            type: 'radar',
+            data: {
+                labels: ['Real-Time Processing', 'Global Network Data', 'Custom Rule Flexibility', 'Ease of Integration', 'AI/ML Sophistication', 'Analyst Workflow'],
+                datasets: [
+                    {
+                        label: 'Visa Risk Manager',
+                        data: [95, 100, 85, 80, 90, 85],
+                        backgroundColor: 'rgba(30, 58, 138, 0.2)', // Blue 900
+                        borderColor: 'rgba(30, 58, 138, 1)',
+                        pointBackgroundColor: 'rgba(30, 58, 138, 1)',
+                    },
+                    {
+                        label: 'In-House Custom Build',
+                        data: [80, 40, 100, 60, 85, 70],
+                        backgroundColor: 'rgba(148, 163, 184, 0.2)', // Slate 400
+                        borderColor: 'rgba(148, 163, 184, 1)',
+                        pointBackgroundColor: 'rgba(148, 163, 184, 1)',
+                    },
+                    {
+                        label: 'Legacy Rule Systems',
+                        data: [70, 50, 60, 90, 30, 50],
+                        backgroundColor: 'rgba(245, 158, 11, 0.2)', // Amber 500
+                        borderColor: 'rgba(245, 158, 11, 1)',
+                        borderDash: [5, 5]
+                    }
+                ]
+            },
+            options: {
+                ...commonOptions,
+                scales: { r: { min: 0, max: 100, ticks: { display: false } } }
+            }
+        });
+
+        // 2. Risk Score Distribution (Line Chart)
+        const ctxRisk = document.getElementById('riskScoreChart').getContext('2d');
+        // Generate synthetic bell-curve-ish data
+        const labels = Array.from({length: 24}, (_, i) => `${i}:00`);
+        const normalVol = labels.map(() => Math.floor(Math.random() * 5000) + 10000); // 10k-15k
+        const highRiskVol = labels.map(() => Math.floor(Math.random() * 200) + 50); // 50-250
+        
+        new Chart(ctxRisk, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Low Risk (Score 0-50)',
+                        data: normalVol,
+                        borderColor: '#10b981', // Emerald 500
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    },
+                    {
+                        label: 'High Risk (Score 85-99)',
+                        data: highRiskVol,
+                        borderColor: '#ef4444', // Red 500
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        yAxisID: 'y1' // Use secondary axis for visibility
+                    }
+                ]
+            },
+            options: {
+                ...commonOptions,
+                interaction: { mode: 'index', intersect: false },
+                scales: {
+                    y: { type: 'linear', display: true, position: 'left', title: {display: true, text: 'Total Tx Volume'} },
+                    y1: { type: 'linear', display: true, position: 'right', grid: {drawOnChartArea: false}, title: {display: true, text: 'High Risk Volume'} }
+                }
+            }
+        });
+
+        // 3. Threat Vector Doughnut Chart & Logic
+        const threatDataStore = {
+            card: {
+                title: 'Card Fraud Dynamics',
+                desc: 'Focuses on counterfeit cards, lost/stolen physical cards, and card-not-present (CNP) breaches using compromised PAN data.',
+                data: [45, 30, 15, 10],
+                labels: ['CNP (E-comm)', 'Counterfeit', 'Lost/Stolen', 'Other']
+            },
+            merchant: {
+                title: 'Merchant Fraud Patterns',
+                desc: 'Identifies risky merchant categories, transaction laundering, and abnormal refund velocities indicative of merchant compromise.',
+                data: [50, 25, 20, 5],
+                labels: ['Bust-Out Fraud', 'Transaction Laundering', 'Excessive Chargebacks', 'Identity Synthetic']
+            },
+            ato: {
+                title: 'Account Takeover (ATO)',
+                desc: 'Monitors behavioral biometrics, device intelligence, and login anomalies to detect when a legitimate account is controlled by a bad actor.',
+                data: [40, 35, 25],
+                labels: ['Credential Stuffing', 'Phishing/Smishing', 'Malware/Session Hijack']
+            },
+            digital: {
+                title: 'Digital Wallet & Payment Fraud',
+                desc: 'Secures token provisioning and in-app purchases. High focus on the point of provisioning a card to Apple Pay/Google Pay.',
+                data: [60, 25, 15],
+                labels: ['Illicit Provisioning', 'In-App Purchase Exploit', 'P2P Transfer Fraud']
+            },
+            onboarding: {
+                title: 'Customer Onboarding Risk',
+                desc: 'First-party fraud and synthetic identities attempting to open lines of credit or new accounts.',
+                data: [55, 30, 15],
+                labels: ['Synthetic Identity', 'First-Party Default', 'Stolen Identity']
+            }
+        };
+
+        const ctxThreat = document.getElementById('threatChart').getContext('2d');
+        let threatChartInst = new Chart(ctxThreat, {
+            type: 'doughnut',
+            data: {
+                labels: threatDataStore['card'].labels,
+                datasets: [{
+                    data: threatDataStore['card'].data,
+                    backgroundColor: ['#1e3a8a', '#3b82f6', '#93c5fd', '#e2e8f0'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                ...commonOptions,
+                cutout: '65%',
+                plugins: {
+                    legend: { position: 'right' }
+                }
+            }
+        });
+
+        window.updateThreatData = function(category) {
+            // Update UI State
+            document.querySelectorAll('.threat-tab').forEach(el => el.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Update Text
+            const data = threatDataStore[category];
+            document.getElementById('threat-title').innerText = data.title;
+            document.getElementById('threat-desc').innerText = data.desc;
+
+            // Update Chart Data & Re-render
+            threatChartInst.data.labels = data.labels;
+            threatChartInst.data.datasets[0].data = data.data;
+            threatChartInst.update();
+        };
+
+    </script>
+</body>
+</html>
