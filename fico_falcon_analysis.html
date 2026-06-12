@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FICO Falcon Fraud Manager Analysis</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Chosen Palette: Warm Corporate Neutrals (Stone/Slate/Indigo). Backgrounds are light stone, text is dark slate, interactive accents are indigo and teal to evoke trust, clarity, and analytical precision. -->
+    <!-- Application Structure Plan: A multi-view dashboard SPA structure. It provides an executive overview, then deep dives into architecture, AI/scoring, workflows, capabilities, and market position via a sticky top navigation. This non-linear exploration allows users to easily find specific technical or operational details without scrolling through a massive report. -->
+    <!-- Visualization & Content Choices: 
+         1. Architecture Diagram -> HTML/CSS Grid with JS interaction -> Allows exploring modules without SVG/images.
+         2. Score Distribution -> Chart.js Area Chart -> Visually explains the 1-999 scoring methodology and alert thresholds.
+         3. Workflow Flowchart -> HTML/CSS Flexbox with JS step-through -> Simplifies complex operational lifecycles interactively.
+         4. Analyst Skills -> Chart.js Radar Chart -> Maps the multi-faceted skill requirements for fraud analysts clearly. 
+         Library/Method confirms NO SVG/Mermaid used. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #fafaf9; color: #1e293b; }
+        
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+        @media (max-width: 768px) {
+            .chart-container { height: 250px; max-height: 300px; }
+        }
+
+        .tab-content { display: none; animation: fadeIn 0.3s ease-in-out; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        .arch-block {
+            transition: all 0.2s;
+            cursor: pointer;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .arch-block:hover, .arch-block.active-block {
+            transform: translateY(-2px);
+            border-color: #4f46e5;
+            background-color: #eef2ff;
+        }
+
+        .step-box { transition: all 0.3s; cursor: pointer; }
+        .step-box.active-step { background-color: #4f46e5; color: white; border-color: #4f46e5; }
+        
+        .nav-btn.active { background-color: #4f46e5; color: white; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <nav class="bg-white shadow-sm sticky top-0 z-50 border-b border-stone-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row justify-between h-auto md:h-16 items-center py-4 md:py-0">
+                <div class="flex-shrink-0 flex items-center font-bold text-xl text-indigo-900 tracking-tight mb-4 md:mb-0">
+                    <span class="mr-2 text-2xl">&#128300;</span> FICO Falcon Analysis
+                </div>
+                <div class="flex flex-wrap justify-center gap-2 md:gap-1">
+                    <button class="nav-btn active px-3 py-2 rounded-md text-sm font-medium text-slate-600 hover:bg-indigo-50 hover:text-indigo-700 transition" data-target="overview">Overview</button>
+                    <button class="nav-btn px-3 py-2 rounded-md text-sm font-medium text-slate-600 hover:bg-indigo-50 hover:text-indigo-700 transition" data-target="architecture">Architecture</button>
+                    <button class="nav-btn px-3 py-2 rounded-md text-sm font-medium text-slate-600 hover:bg-indigo-50 hover:text-indigo-700 transition" data-target="ai-models">AI & Scoring</button>
+                    <button class="nav-btn px-3 py-2 rounded-md text-sm font-medium text-slate-600 hover:bg-indigo-50 hover:text-indigo-700 transition" data-target="workflows">Workflows</button>
+                    <button class="nav-btn px-3 py-2 rounded-md text-sm font-medium text-slate-600 hover:bg-indigo-50 hover:text-indigo-700 transition" data-target="market">Market & Skills</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="flex-grow w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+        <section id="overview" class="tab-content active">
+            <div class="mb-8">
+                <h1 class="text-3xl font-bold text-slate-900 mb-4">FICO® Falcon® Fraud Manager Overview</h1>
+                <p class="text-lg text-slate-600 leading-relaxed">
+                    This section introduces FICO Falcon Fraud Manager, the industry-leading solution for enterprise fraud prevention. It provides foundational context on its market dominance, core value proposition, and the scope of fraud vectors it mitigates, setting the stage for the deep technical analysis in subsequent tabs.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                <div class="bg-white p-6 rounded-xl border border-stone-200 shadow-sm">
+                    <div class="text-3xl mb-2">&#127974;</div>
+                    <h3 class="text-xl font-semibold text-slate-800">Global Scale</h3>
+                    <p class="text-slate-600 mt-2">Protects over 2.6 billion payment accounts worldwide. Used by 17 of the top 20 global banks.</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl border border-stone-200 shadow-sm">
+                    <div class="text-3xl mb-2">&#9889;</div>
+                    <h3 class="text-xl font-semibold text-slate-800">Real-Time Processing</h3>
+                    <p class="text-slate-600 mt-2">Evaluates transactions in milliseconds, blocking fraud before authorization while minimizing friction.</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl border border-stone-200 shadow-sm">
+                    <div class="text-3xl mb-2">&#129408;</div>
+                    <h3 class="text-xl font-semibold text-slate-800">Cognitive AI</h3>
+                    <p class="text-slate-600 mt-2">Utilizes patented behavioral profiling (B-tags) and machine learning to distinguish normal vs. fraudulent behavior.</p>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm border border-stone-200 overflow-hidden">
+                <div class="p-6 md:p-8">
+                    <h2 class="text-2xl font-bold text-slate-900 mb-4">Coverage Vectors</h2>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="flex items-start p-4 bg-stone-50 rounded-lg">
+                            <span class="text-2xl mr-4">&#128179;</span>
+                            <div><strong class="block text-slate-800">Card Fraud</strong><span class="text-sm text-slate-600">CNP, Point of Sale, ATM, Skimming, Lost/Stolen.</span></div>
+                        </div>
+                        <div class="flex items-start p-4 bg-stone-50 rounded-lg">
+                            <span class="text-2xl mr-4">&#128184;</span>
+                            <div><strong class="block text-slate-800">Payment Fraud</strong><span class="text-sm text-slate-600">Wire, ACH, P2P (Zelle, Faster Payments), Real-time payments.</span></div>
+                        </div>
+                        <div class="flex items-start p-4 bg-stone-50 rounded-lg">
+                            <span class="text-2xl mr-4">&#128100;</span>
+                            <div><strong class="block text-slate-800">Account Takeover (ATO)</strong><span class="text-sm text-slate-600">Detects compromised credentials and anomalous login/transfer behavior.</span></div>
+                        </div>
+                        <div class="flex items-start p-4 bg-stone-50 rounded-lg">
+                            <span class="text-2xl mr-4">&#128241;</span>
+                            <div><strong class="block text-slate-800">Scams (APP Fraud)</strong><span class="text-sm text-slate-600">Authorized Push Payment fraud, detecting social engineering via behavior analysis.</span></div>
+                        </div>
+                        <div class="flex items-start p-4 bg-stone-50 rounded-lg">
+                            <span class="text-2xl mr-4">&#128221;</span>
+                            <div><strong class="block text-slate-800">Application Fraud</strong><span class="text-sm text-slate-600">First-party fraud, synthetic identities during the onboarding process.</span></div>
+                        </div>
+                        <div class="flex items-start p-4 bg-stone-50 rounded-lg">
+                            <span class="text-2xl mr-4">&#128188;</span>
+                            <div><strong class="block text-slate-800">Mule Detection</strong><span class="text-sm text-slate-600">Identifying accounts used to receive and launder illicit funds.</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="architecture" class="tab-content">
+            <div class="mb-8">
+                <h1 class="text-3xl font-bold text-slate-900 mb-4">Platform Architecture</h1>
+                <p class="text-lg text-slate-600 leading-relaxed">
+                    This interactive diagram breaks down the core components of the FICO Falcon ecosystem. Understanding this architecture is crucial to seeing how data ingestion, AI processing, rule execution, and case management interact seamlessly in real-time. Click on any module to view its technical details.
+                </p>
+            </div>
+
+            <div class="flex flex-col lg:flex-row gap-8">
+                <div class="w-full lg:w-1/2">
+                    <div class="bg-slate-100 p-6 rounded-xl flex flex-col gap-4 relative border border-slate-200">
+                        <div class="text-center font-semibold text-slate-500 mb-2 uppercase text-sm tracking-wide">Data Ingestion (APIs/Streams)</div>
+                        
+                        <div class="text-center font-bold my-1 text-slate-400">&#8595;</div>
+
+                        <div class="arch-block active-block bg-white border-2 border-slate-300 p-4 rounded-lg text-center" data-mod="decision">
+                            <h3 class="font-bold text-lg text-indigo-900">Falcon Decision Engine</h3>
+                            <p class="text-xs text-slate-500 mt-1">Core Real-time Processing</p>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="arch-block bg-white border-2 border-slate-300 p-4 rounded-lg text-center flex flex-col justify-center" data-mod="models">
+                                <h3 class="font-bold text-slate-800">Neural Network Models</h3>
+                            </div>
+                            <div class="arch-block bg-white border-2 border-slate-300 p-4 rounded-lg text-center flex flex-col justify-center" data-mod="rules">
+                                <h3 class="font-bold text-slate-800">Falcon Rule Engine</h3>
+                            </div>
+                        </div>
+
+                        <div class="text-center font-bold my-1 text-slate-400">&#8595;</div>
+
+                        <div class="grid grid-cols-3 gap-2">
+                            <div class="arch-block bg-white border-2 border-slate-300 p-3 rounded-lg text-center" data-mod="risk">
+                                <h3 class="font-bold text-sm text-slate-800">Risk Manager</h3>
+                            </div>
+                            <div class="arch-block bg-white border-2 border-slate-300 p-3 rounded-lg text-center" data-mod="ccs">
+                                <h3 class="font-bold text-sm text-slate-800">Customer Comm. Services (CCS)</h3>
+                            </div>
+                            <div class="arch-block bg-white border-2 border-slate-300 p-3 rounded-lg text-center" data-mod="case">
+                                <h3 class="font-bold text-sm text-slate-800">Case Manager</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="w-full lg:w-1/2">
+                    <div id="arch-details" class="bg-white p-8 rounded-xl border border-indigo-100 shadow-md h-full">
+                        <h2 class="text-2xl font-bold text-indigo-900 mb-4" id="ad-title">Falcon Decision Engine</h2>
+                        <p class="text-slate-700 mb-4 leading-relaxed" id="ad-desc">The central nervous system of the platform. It orchestrates the ingestion of transaction data via high-speed APIs, compiles behavioral profiles in real-time, calls upon machine learning models to generate a risk score, and executes user-defined rules to output a final decision (Approve, Decline, Review) within milliseconds.</p>
+                        <ul class="list-disc pl-5 text-slate-600 space-y-2" id="ad-list">
+                            <li>Real-time transaction authorization.</li>
+                            <li>Maintains stateful behavioral profiles (B-tags).</li>
+                            <li>Sub-millisecond latency for payment processing.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="ai-models" class="tab-content">
+            <div class="mb-8">
+                <h1 class="text-3xl font-bold text-slate-900 mb-4">AI, Machine Learning & Risk Scoring</h1>
+                <p class="text-lg text-slate-600 leading-relaxed">
+                    Explore the methodology behind FICO's proprietary neural network models. This section explains how Falcon translates complex, multi-dimensional customer behavior into a simple, actionable 1-999 risk score, and visualizes how institutions set alert thresholds.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <div class="bg-white p-6 rounded-xl border border-stone-200 shadow-sm">
+                    <h3 class="text-xl font-bold text-slate-800 mb-4">The 1-999 Scoring Methodology</h3>
+                    <p class="text-slate-600 mb-4">Falcon assigns a score between 1 and 999 to every transaction. A higher score indicates a higher probability of fraud.</p>
+                    <ul class="space-y-3 mb-6">
+                        <li class="flex items-start"><span class="text-green-500 mr-2 font-bold">&#10003;</span> <div><strong class="text-slate-800">Low Score (1-500):</strong> Typical behavior, high confidence of legitimacy. Automatically approved.</div></li>
+                        <li class="flex items-start"><span class="text-yellow-500 mr-2 font-bold">&#9888;</span> <div><strong class="text-slate-800">Medium Score (501-899):</strong> Slight deviations. May trigger soft rules, step-up authentication (OTP), or monitoring.</div></li>
+                        <li class="flex items-start"><span class="text-red-500 mr-2 font-bold">&#10007;</span> <div><strong class="text-slate-800">High Score (900-999):</strong> Highly anomalous behavior. Typically triggers real-time decline or immediate analyst alert.</div></li>
+                    </ul>
+                    <div class="bg-indigo-50 p-4 rounded-lg border border-indigo-100 text-sm text-indigo-900">
+                        <strong>Behavioral Sorting Technology:</strong> Models use patented techniques to look at customer history, comparing the current transaction to past behaviors (velocity, geolocation, merchant type) using recursive variables called B-tags.
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl border border-stone-200 shadow-sm flex flex-col justify-center">
+                    <h3 class="text-xl font-bold text-slate-800 mb-4 text-center">Score Distribution & Thresholds</h3>
+                    <div class="chart-container">
+                        <canvas id="scoreChart"></canvas>
+                    </div>
+                    <p class="text-xs text-center text-slate-500 mt-2">Note: Most transactions cluster in the low-score range. Thresholds are optimized to balance Fraud Detection Rate (FDR) and False Positive Ratio (FPR).</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="workflows" class="tab-content">
+            <div class="mb-8">
+                <h1 class="text-3xl font-bold text-slate-900 mb-4">Operational Workflows</h1>
+                <p class="text-lg text-slate-600 leading-relaxed">
+                    This section illustrates the lifecycle of a transaction through the Falcon ecosystem and details the day-to-day workflow of a Fraud Analyst investigating an alert. Interact with the steps below to follow the process end-to-end.
+                </p>
+            </div>
+
+            <div class="bg-white p-6 rounded-xl border border-stone-200 shadow-sm mb-8">
+                <h2 class="text-xl font-bold text-slate-800 mb-6">Real-Time Transaction Detection Lifecycle</h2>
+                
+                <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-2">
+                    <div class="step-box active-step border-2 border-stone-300 rounded-lg p-3 text-center w-full md:w-1/5 font-semibold text-sm" data-wf="1">1. Ingestion</div>
+                    <div class="hidden md:block text-slate-400 font-bold">&#8594;</div>
+                    <div class="text-center font-bold text-slate-400 md:hidden">&#8595;</div>
+                    <div class="step-box border-2 border-stone-300 rounded-lg p-3 text-center w-full md:w-1/5 font-semibold text-sm" data-wf="2">2. Profiling & Scoring</div>
+                    <div class="hidden md:block text-slate-400 font-bold">&#8594;</div>
+                    <div class="text-center font-bold text-slate-400 md:hidden">&#8595;</div>
+                    <div class="step-box border-2 border-stone-300 rounded-lg p-3 text-center w-full md:w-1/5 font-semibold text-sm" data-wf="3">3. Rules & Decision</div>
+                    <div class="hidden md:block text-slate-400 font-bold">&#8594;</div>
+                    <div class="text-center font-bold text-slate-400 md:hidden">&#8595;</div>
+                    <div class="step-box border-2 border-stone-300 rounded-lg p-3 text-center w-full md:w-1/5 font-semibold text-sm" data-wf="4">4. Alert Generation</div>
+                    <div class="hidden md:block text-slate-400 font-bold">&#8594;</div>
+                    <div class="text-center font-bold text-slate-400 md:hidden">&#8595;</div>
+                    <div class="step-box border-2 border-stone-300 rounded-lg p-3 text-center w-full md:w-1/5 font-semibold text-sm" data-wf="5">5. Resolution</div>
+                </div>
+
+                <div id="wf-details" class="bg-stone-50 p-6 rounded-lg border border-stone-200 min-h-[150px]">
+                    <h3 class="font-bold text-lg text-indigo-900 mb-2" id="wf-title">1. Data Ingestion & Enrichment</h3>
+                    <p class="text-slate-700" id="wf-desc">The payment network or core banking system sends ISO8583 messages or API JSON payloads to Falcon. Falcon parses data (amount, merchant MCC, terminal ID, IP address, device ID) and performs real-time enrichment.</p>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-xl border border-stone-200 shadow-sm">
+                <h2 class="text-xl font-bold text-slate-800 mb-4">Fraud Analyst Investigation Workflow</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="p-4 bg-indigo-50 rounded-lg border border-indigo-100 relative">
+                        <div class="absolute -top-3 -left-3 bg-indigo-600 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold">1</div>
+                        <h4 class="font-bold text-slate-800 mt-2">Queue Management</h4>
+                        <p class="text-sm text-slate-600 mt-1">Analyst accesses Falcon Case Manager. Cases are prioritized automatically by Risk Score and monetary exposure.</p>
+                    </div>
+                    <div class="p-4 bg-indigo-50 rounded-lg border border-indigo-100 relative">
+                        <div class="absolute -top-3 -left-3 bg-indigo-600 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold">2</div>
+                        <h4 class="font-bold text-slate-800 mt-2">Profile Review</h4>
+                        <p class="text-sm text-slate-600 mt-1">Examines customer history, recent transactions, device logs, and triggered rules to establish context.</p>
+                    </div>
+                    <div class="p-4 bg-indigo-50 rounded-lg border border-indigo-100 relative">
+                        <div class="absolute -top-3 -left-3 bg-indigo-600 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold">3</div>
+                        <h4 class="font-bold text-slate-800 mt-2">Customer Outreach</h4>
+                        <p class="text-sm text-slate-600 mt-1">If unverified, triggers Falcon CCS for an automated SMS/Call, or the analyst calls the customer directly to verify activity.</p>
+                    </div>
+                    <div class="p-4 bg-indigo-50 rounded-lg border border-indigo-100 relative">
+                        <div class="absolute -top-3 -left-3 bg-indigo-600 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold">4</div>
+                        <h4 class="font-bold text-slate-800 mt-2">Disposition</h4>
+                        <p class="text-sm text-slate-600 mt-1">Marks case as Fraud or False Positive. Blocks card/account if needed. Data feeds back into ML models.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="market" class="tab-content">
+            <div class="mb-8">
+                <h1 class="text-3xl font-bold text-slate-900 mb-4">Market Position & Analyst Persona</h1>
+                <p class="text-lg text-slate-600 leading-relaxed">
+                    Analyze how FICO Falcon compares to industry competitors, its inherent strengths and limitations, and interact with the radar chart to understand the specific skill profile required for personnel operating this complex platform.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <div class="bg-white p-6 rounded-xl border border-stone-200 shadow-sm">
+                    <h3 class="text-xl font-bold text-slate-800 mb-4">Competitor Comparison</h3>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full text-left text-sm whitespace-nowrap">
+                            <thead class="uppercase tracking-wider border-b-2 border-stone-200 text-slate-500">
+                                <tr>
+                                    <th class="px-4 py-3">Vendor</th>
+                                    <th class="px-4 py-3">Core Strength</th>
+                                    <th class="px-4 py-3">Primary Use Case</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-slate-700">
+                                <tr class="border-b border-stone-100 bg-indigo-50 font-semibold">
+                                    <td class="px-4 py-3">FICO Falcon</td>
+                                    <td class="px-4 py-3">Consortium Data, Card Base</td>
+                                    <td class="px-4 py-3">Retail Banking, Issuing</td>
+                                </tr>
+                                <tr class="border-b border-stone-100">
+                                    <td class="px-4 py-3">NICE Actimize</td>
+                                    <td class="px-4 py-3">Enterprise AML/Fraud combo</td>
+                                    <td class="px-4 py-3">Capital Markets, Wholesale</td>
+                                </tr>
+                                <tr class="border-b border-stone-100">
+                                    <td class="px-4 py-3">Featurespace</td>
+                                    <td class="px-4 py-3">Adaptive Behavioral Analytics</td>
+                                    <td class="px-4 py-3">Real-time Payments (APP)</td>
+                                </tr>
+                                <tr class="border-b border-stone-100">
+                                    <td class="px-4 py-3">Feedzai</td>
+                                    <td class="px-4 py-3">AutoML, Cloud Agility</td>
+                                    <td class="px-4 py-3">Acquiring, FinTechs</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <h4 class="font-bold text-slate-800 mt-6 mb-2">Strengths vs Limitations</h4>
+                    <div class="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                            <strong class="text-green-700 block mb-1">Strengths (+)</strong>
+                            <ul class="list-disc pl-4 text-slate-600">
+                                <li>Unmatched global consortium data.</li>
+                                <li>Highly stable, sub-10ms latencies.</li>
+                                <li>Deep integration with core processors.</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <strong class="text-red-700 block mb-1">Limitations (-)</strong>
+                            <ul class="list-disc pl-4 text-slate-600">
+                                <li>Legacy UI in older versions.</li>
+                                <li>Complex rule deployment cycles.</li>
+                                <li>High total cost of ownership (TCO).</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl border border-stone-200 shadow-sm">
+                    <h3 class="text-xl font-bold text-slate-800 mb-4 text-center">Required Skills: Fraud Analyst (Falcon)</h3>
+                    <div class="chart-container">
+                        <canvas id="skillsChart"></canvas>
+                    </div>
+                    <p class="text-xs text-center text-slate-500 mt-2">Operating Falcon effectively requires a blend of technical tooling knowledge, rapid analytical logic, and deep understanding of evolving fraud typologies.</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        // State variables to ensure charts render properly
+        let chartsInitialized = { ai: false, market: false };
+        let scoreChartInstance = null;
+        let skillsChartInstance = null;
+
+        // Navigation Logic
+        const navBtns = document.querySelectorAll('.nav-btn');
+        const tabs = document.querySelectorAll('.tab-content');
+
+        navBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Update buttons
+                navBtns.forEach(b => b.classList.remove('active', 'bg-indigo-50', 'text-indigo-700'));
+                btn.classList.add('active');
+
+                // Update tabs
+                const target = btn.getAttribute('data-target');
+                tabs.forEach(tab => {
+                    tab.classList.remove('active');
+                    if(tab.id === target) {
+                        tab.classList.add('active');
+                    }
+                });
+
+                // Lazy load charts to fix canvas sizing issues in hidden divs
+                if(target === 'ai-models' && !chartsInitialized.ai) {
+                    initScoreChart();
+                    chartsInitialized.ai = true;
+                }
+                if(target === 'market' && !chartsInitialized.market) {
+                    initSkillsChart();
+                    chartsInitialized.market = true;
+                }
+            });
+        });
+
+        // Architecture Interaction Logic
+        const archData = {
+            'decision': { title: 'Falcon Decision Engine', desc: 'The central nervous system of the platform. It orchestrates the ingestion of transaction data via high-speed APIs, compiles behavioral profiles in real-time, calls upon machine learning models to generate a risk score, and executes user-defined rules to output a final decision (Approve, Decline, Review) within milliseconds.', list: ['Real-time transaction authorization.','Maintains stateful behavioral profiles (B-tags).','Sub-millisecond latency for payment processing.'] },
+            'models': { title: 'Neural Network Models', desc: 'Pre-trained and customizable machine learning models that analyze historical and streaming data. They detect subtle, non-linear patterns indicative of fraud that traditional rule sets miss.', list: ['Supervised and Unsupervised learning.','Consortium data trained models.','Adaptive learning capabilities.'] },
+            'rules': { title: 'Falcon Rule Engine', desc: 'Allows fraud strategy teams to deploy deterministic business logic. Rules operate alongside AI scores to enforce compliance, handle specific fraud typologies, or manage risk appetite.', list: ['Boolean logic (If X and Y, then Z).','Velocity checks (e.g., >3 transactions in 10 mins).','List management (Blocklists/Allowlists).'] },
+            'risk': { title: 'Falcon Risk Manager', desc: 'The strategic command center for fraud managers. Used to author rules, backtest strategies against historical data, and monitor the overall performance (FPR, FDR) of the portfolio.', list: ['Strategy simulation (Champion/Challenger).','Reporting and Dashboarding.','Policy configuration.'] },
+            'ccs': { title: 'Customer Communication Services', desc: 'Automated omnichannel outreach module. When an alert is generated, CCS can instantly SMS, email, or call the customer to verify the transaction, automating the resolution process.', list: ['Two-way SMS verification.','IVR (Interactive Voice Response).','Reduces call center volumes.'] },
+            'case': { title: 'Falcon Case Manager', desc: 'The operational UI for Fraud Analysts. It aggregates all data related to an alert into a unified view, allowing human investigators to make final dispositions on complex cases.', list: ['Queue management and prioritization.','Historical link analysis.','Disposition logging.'] }
+        };
+
+        const archBlocks = document.querySelectorAll('.arch-block');
+        const adTitle = document.getElementById('ad-title');
+        const adDesc = document.getElementById('ad-desc');
+        const adList = document.getElementById('ad-list');
+
+        archBlocks.forEach(block => {
+            block.addEventListener('click', () => {
+                archBlocks.forEach(b => b.classList.remove('active-block'));
+                block.classList.add('active-block');
+                const key = block.getAttribute('data-mod');
+                const data = archData[key];
+                
+                adTitle.innerText = data.title;
+                adDesc.innerText = data.desc;
+                adList.innerHTML = data.list.map(item => `<li>${item}</li>`).join('');
+            });
+        });
+
+        // Workflow Interaction Logic
+        const wfData = {
+            '1': { title: '1. Data Ingestion & Enrichment', desc: 'The payment network or core banking system sends ISO8583 messages or API JSON payloads to Falcon. Falcon parses data (amount, merchant MCC, terminal ID, IP address, device ID) and performs real-time enrichment.' },
+            '2': { title: '2. Profiling & Scoring (Neural Net)', desc: 'The system retrieves the customer’s historical profile. It updates velocity counters and behavior tags (B-tags). The Neural Network evaluates the transaction against this profile and outputs a Risk Score (1-999).' },
+            '3': { title: '3. Rules Engine Execution', desc: 'The risk score and raw data pass through custom business rules. (e.g., "IF Score > 900 AND Cross-Border = True THEN Decline"). Rules output a final action: Approve, Decline, or Review.' },
+            '4': { title: '4. Alert Generation & CCS', desc: 'If the decision is "Review", an alert is created. Depending on configuration, Falcon CCS may send an automated SMS to the customer asking "Did you attempt a $500 charge at Target? Reply 1 for Yes, 2 for No."' },
+            '5': { title: '5. Analyst Resolution', desc: 'If unverified by automation, the alert drops into Case Manager. An analyst reviews the profile, contacts the customer, and logs a final disposition (Fraud or False Positive), feeding data back into the models.' }
+        };
+
+        const stepBoxes = document.querySelectorAll('.step-box');
+        const wfTitle = document.getElementById('wf-title');
+        const wfDesc = document.getElementById('wf-desc');
+
+        stepBoxes.forEach(step => {
+            step.addEventListener('click', () => {
+                stepBoxes.forEach(s => s.classList.remove('active-step'));
+                step.classList.add('active-step');
+                const key = step.getAttribute('data-wf');
+                wfTitle.innerText = wfData[key].title;
+                wfDesc.innerText = wfData[key].desc;
+            });
+        });
+
+        // Chart.js Implementations
+        function initScoreChart() {
+            const ctx = document.getElementById('scoreChart').getContext('2d');
+            
+            // Create bell curve data approximation
+            const labels = [];
+            const data = [];
+            for(let i=0; i<=999; i+=50) {
+                labels.push(i);
+                // Gaussian approximation for visualization
+                let val = Math.exp(-Math.pow(i - 200, 2) / 40000) * 100; 
+                // Add a small bump at the high end for fraud
+                if(i > 850) val += Math.exp(-Math.pow(i - 950, 2) / 5000) * 15;
+                data.push(val);
+            }
+
+            scoreChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Volume of Transactions',
+                        data: data,
+                        borderColor: '#4f46e5',
+                        backgroundColor: 'rgba(79, 70, 229, 0.2)',
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    if(context.parsed.x > 900) return 'High Risk Zone (Alerts Generated)';
+                                    if(context.parsed.x > 500) return 'Medium Risk (Monitor/OTP)';
+                                    return 'Low Risk (Auto-Approve)';
+                                }
+                            }
+                        },
+                        annotation: {
+                            // Using standard chart.js drawing without extra plugins for simplicity,
+                            // visual separation done via x-axis knowledge.
+                        }
+                    },
+                    scales: {
+                        x: { 
+                            title: { display: true, text: 'Falcon Risk Score (1-999)' },
+                            grid: { display: false }
+                        },
+                        y: { 
+                            display: false // Hide raw volume numbers for conceptual chart
+                        }
+                    }
+                }
+            });
+        }
+
+        function initSkillsChart() {
+            const ctx = document.getElementById('skillsChart').getContext('2d');
+            skillsChartInstance = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: [
+                        'Falcon UI Navigation', 
+                        'Fraud Typology Knowledge', 
+                        'Data Analysis (SQL/Excel)', 
+                        'Under-Pressure Logic', 
+                        'Customer Communication',
+                        'Rule Strategy Logic'
+                    ],
+                    datasets: [{
+                        label: 'Required Skill Level',
+                        data: [90, 95, 70, 90, 80, 75],
+                        backgroundColor: 'rgba(13, 148, 136, 0.2)', // Teal
+                        borderColor: 'rgba(13, 148, 136, 1)',
+                        pointBackgroundColor: 'rgba(13, 148, 136, 1)',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(0,0,0,0.1)' },
+                            grid: { color: 'rgba(0,0,0,0.1)' },
+                            pointLabels: {
+                                font: { family: 'Inter', size: 11 },
+                                color: '#475569'
+                            },
+                            ticks: { display: false, min: 0, max: 100 }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) { label += ': '; }
+                                    if (context.parsed.r !== null) {
+                                        label += context.parsed.r + '/100';
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+    </script>
+</body>
+</html>
